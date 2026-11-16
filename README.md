@@ -13,7 +13,7 @@ A Django web app to search buses, choose seats and book tickets.
 Python, Django, SQLite, HTML, CSS, JavaScript
 
 ## Run locally
-    git clone https://github.com/YOUR-USERNAME/busbooking.git
+    git clone  https://github.com/kailashsingh-2001/Busbooking-Django.git
     cd busbooking
     python -m venv venv
     venv\Scripts\Activate.ps1
