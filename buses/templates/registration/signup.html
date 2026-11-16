@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% comment %} {% load static %} {% endcomment %}
+{% block title %}Sign up | BusBook{% endblock %}
+
+{% block content %}
+<main class="auth-wrap">
+  <form method="post" class="auth-card">
+    {% csrf_token %}
+    <h1>Create your account</h1>
+    <p class="muted">Sign up to book seats in a few taps.</p>
+
+    {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}
+          <p class="form-error">{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <p class="muted small" style="margin-top:12px">
+      Password: at least 8 characters, not too common, and not only numbers.
+    </p>
+
+    <button type="submit" class="btn primary wide">Sign up</button>
+    <p class="auth-switch muted">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+  </form>
+</main>
+{% endblock %}

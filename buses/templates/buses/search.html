@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Search buses | BusBook{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="container">
+    <h1>Book your seat in a few taps</h1>
+    <p>Compare buses, pick your seat, and get your ticket in seconds.</p>
+  </div>
+</section>
+
+<section class="container search-wrap">
+  <form class="search-card" method="get" action="{% url 'search' %}">
+    <div class="field">
+      <label for="from">From</label>
+      <input id="from" name="source" value="{{ source }}" required>
+    </div>
+    <div class="field">
+      <label for="to">To</label>
+      <input id="to" name="destination" value="{{ destination }}" required>
+    </div>
+    <div class="field">
+      <label for="date">Date</label>
+      <input id="date" type="date" name="date" value="{{ travel_date|date:'Y-m-d' }}" required>
+    </div>
+    <button type="submit" class="btn primary search-btn">Search buses</button>
+  </form>
+</section>
+
+<main class="container results-layout">
+  <div class="results">
+    <div class="results-head">
+      <h2>{{ buses|length }} bus{{ buses|length|pluralize:"es" }} · {{ source }} to {{ destination }}</h2>
+      <a class="chip" href="?source={{ source }}&destination={{ destination }}&date={{ travel_date|date:'Y-m-d' }}&type=AC">AC</a>
+      <a class="chip" href="?source={{ source }}&destination={{ destination }}&date={{ travel_date|date:'Y-m-d' }}&type=Sleeper">Sleeper</a>
+      <a class="chip" href="?source={{ source }}&destination={{ destination }}&date={{ travel_date|date:'Y-m-d' }}&type=Seater">Seater</a>
+    </div>
+
+    {% for bus in buses %}
+      <article class="bus-card {% if bus.id == selected_bus.id %}is-selected{% endif %}">
+        <div class="bus-info">
+          <h3>{{ bus.operator }}</h3>
+          <p class="muted">{{ bus.get_bus_type_display }}</p>
+          <span class="badge {% if bus.seats_left <= 8 %}warn{% else %}ok{% endif %}">{{ bus.seats_left }} seats left</span>
+        </div>
+
+        <div class="bus-times">
+          <div><strong>{{ bus.departure_time|time:"H:i" }}</strong><span class="muted small">{{ bus.route.source }}</span></div>
+          <div class="duration muted small">{{ bus.duration_text }}</div>
+          <div><strong>{{ bus.arrival_time|time:"H:i" }}</strong><span class="muted small">{{ bus.route.destination }}</span></div>
+        </div>
+
+        <div class="bus-price">
+          <div class="price">₹{{ bus.price }}</div>
+          <a class="btn {% if bus.id == selected_bus.id %}primary{% endif %}"
+             href="?source={{ source }}&destination={{ destination }}&date={{ travel_date|date:'Y-m-d' }}&bus={{ bus.id }}">
+            {% if bus.id == selected_bus.id %}Seats selected{% else %}Select seats{% endif %}
+          </a>
+        </div>
+      </article>
+    {% empty %}
+      <div class="empty">
+        <h3>No buses found</h3>
+        <p class="muted">Try another date or check the city names.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if selected_bus %}
+  <aside class="seat-panel">
+    <h2>Choose your seats</h2>
+    <p class="muted">{{ selected_bus.operator }} · {{ selected_bus.get_bus_type_display }}</p>
+
+    <form method="post" action="{% url 'book' %}" id="seat-form" data-price="{{ selected_bus.price }}">
+      {% csrf_token %}
+      <input type="hidden" name="bus" value="{{ selected_bus.id }}">
+      <input type="hidden" name="date" value="{{ travel_date|date:'Y-m-d' }}">
+      <input type="hidden" name="seats" id="seats-input">
+
+      <div class="seat-grid">
+        {% for row in seat_rows %}
+          {% for seat in row|slice:":2" %}
+            <button type="button" class="seat {% if seat.booked %}booked{% endif %}"
+                    data-seat="{{ seat.number }}"
+                    aria-label="Seat {{ seat.number }}, {% if seat.booked %}booked{% else %}available{% endif %}"
+                    {% if seat.booked %}aria-disabled="true"{% endif %}>{{ seat.number }}</button>
+          {% endfor %}
+          <span class="aisle"></span>
+          {% for seat in row|slice:"2:" %}
+            <button type="button" class="seat {% if seat.booked %}booked{% endif %}"
+                    data-seat="{{ seat.number }}"
+                    aria-label="Seat {{ seat.number }}, {% if seat.booked %}booked{% else %}available{% endif %}"
+                    {% if seat.booked %}aria-disabled="true"{% endif %}>{{ seat.number }}</button>
+          {% endfor %}
+        {% endfor %}
+      </div>
+
+      <div class="legend muted small">
+        <span>White: free</span><span>Orange: yours</span><span>Gray: booked</span>
+      </div>
+
+      <div class="summary">
+        <span class="muted" id="chosen">No seats selected</span>
+        <span class="total" id="total">₹0</span>
+      </div>
+
+      <button type="submit" class="btn primary wide" id="continue-btn">Continue to passenger details</button>
+    </form>
+  </aside>
+  {% endif %}
+</main>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/seats.js' %}"></script>
+{% endblock %}
