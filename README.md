@@ -24,4 +24,6 @@ Python, Django, SQLite, HTML, CSS, JavaScript
     python manage.py runserver
 
 ## Screenshots
-![alt text](image.png)![alt text](image-1.png)![alt text](image-2.png)
+![Search page](screenshots/image.png)
+![Seat selection](screenshots/image-1.png)
+![Sign up](screenshots/image-2.png)
